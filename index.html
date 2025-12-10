@@ -1,202 +1,829 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Neon Auto Attendance System</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <title>Neon Smart Attendance System</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<!-- Face API -->
-<script defer src="https://unpkg.com/face-api.js"></script>
-
-<style>
-/* ------------------ GLOBAL ------------------ */
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: linear-gradient(120deg, #050505, #0f0047, #001f5c);
-  background-size: 400% 400%;
-  animation: bgMove 10s infinite alternate;
-  color: white;
-  text-align: center;
-}
-
-@keyframes bgMove {
-  0% { background-position: 0 0; }
-  100% { background-position: 100% 100%; }
-}
-
-h1 {
-  margin-top: 20px;
-  font-size: 30px;
-  color: #38bdf8;
-  text-shadow: 0 0 20px #38bdf8;
-}
-
-/* ------------------ CAMERA ------------------ */
-#videoBox {
-  width: 480px;
-  height: 350px;
-  margin: 20px auto;
-  border-radius: 18px;
-  overflow: hidden;
-  border: 4px solid #00eaff;
-  box-shadow: 0 0 25px #00eaff;
-}
-
-video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-/* ------------------ BUTTON ------------------ */
-button {
-  padding: 12px 25px;
-  font-size: 18px;
-  border-radius: 10px;
-  border: none;
-  background: #00eeff;
-  color: black;
-  cursor: pointer;
-  margin-top: 15px;
-  font-weight: bold;
-  box-shadow: 0 0 20px #00eeff;
-}
-
-button:hover {
-  box-shadow: 0 0 40px #00eeff;
-}
-
-/* ------------------ DASHBOARD ------------------ */
-#dashboard {
-  width: 500px;
-  margin: 30px auto;
-  background: rgba(255,255,255,0.08);
-  padding: 20px;
-  border-radius: 18px;
-  backdrop-filter: blur(10px);
-  border: 2px solid rgba(255,255,255,0.2);
-  box-shadow: 0 0 30px #00d0ff;
-}
-
-.section-title {
-  font-size: 24px;
-  margin-bottom: 10px;
-  text-shadow: 0 0 15px #00d0ff;
-}
-
-.name {
-  padding: 8px;
-  font-size: 18px;
-  margin: 6px 0;
-  border-radius: 6px;
-  background: rgba(255,255,255,0.1);
-  box-shadow: 0 0 10px #1e90ff;
-}
-
-/* ------------------ POPUP SUCCESS ------------------ */
-#popup {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  background: #0aff7a;
-  padding: 15px 25px;
-  border-radius: 15px;
-  font-size: 18px;
-  font-weight: bold;
-  color: black;
-  box-shadow: 0 0 25px #00ff9d;
-  display: none;
-}
-</style>
-</head>
-
-<body>
-
-<h1>NEON AUTO ATTENDANCE SYSTEM</h1>
-
-<div id="videoBox">
-  <video id="video" autoplay muted></video>
-</div>
-
-<button id="startBtn">Start Auto Attendance</button>
-
-<div id="dashboard">
-  <div class="section-title">Present Students</div>
-  <div id="presentList"></div>
-
-  <div class="section-title">Pending Students</div>
-  <div id="pendingList"></div>
-</div>
-
-<div id="popup">✔ Attendance Taken!</div>
-
-<script>
-/* ---------------- STUDENT LIST ---------------- */
-const students = [
-  "Keerthana",
-  "Hari Chandana",
-  "Vedha Sai G",
-  "Ajith Kumar",
-  "Shiva Narayana"
-];
-
-let present = new Set();
-
-/* ---------------- CAMERA ---------------- */
-async function startCamera() {
-  navigator.mediaDevices.getUserMedia({ video: true })
-    .then(stream => {
-      document.getElementById("video").srcObject = stream;
-    });
-}
-
-/* ---------------- RANDOM FAKE ATTENDANCE ---------------- */
-function takeFakeAttendance() {
-  const pending = students.filter(s => !present.has(s));
-  if (pending.length === 0) return;
-
-  const randomStudent = pending[Math.floor(Math.random() * pending.length)];
-  present.add(randomStudent);
-
-  showPopup(randomStudent);
-  updateDashboard();
-}
-
-/* ---------------- POPUP ---------------- */
-function showPopup(name) {
-  const popup = document.getElementById("popup");
-  popup.innerHTML = `✔ ${name} - Attendance Successful`;
-  popup.style.display = "block";
-
-  setTimeout(() => { popup.style.display = "none"; }, 2000);
-}
-
-/* ---------------- DASHBOARD UPDATE ---------------- */
-function updateDashboard() {
-  const presentList = document.getElementById("presentList");
-  const pendingList = document.getElementById("pendingList");
-
-  presentList.innerHTML = "";
-  pendingList.innerHTML = "";
-
-  students.forEach(s => {
-    if (present.has(s)) {
-      presentList.innerHTML += `<div class="name" style="color:#00ff9d;">✔ ${s}</div>`;
-    } else {
-      pendingList.innerHTML += `<div class="name" style="color:#ff6b6b;">⏳ ${s}</div>`;
+  <style>
+    :root {
+      --primary: #38bdf8;
+      --accent: #22c55e;
+      --danger: #f97373;
+      --bg-dark: #020617;
+      --glass: rgba(15, 23, 42, 0.8);
     }
-  });
-}
 
-/* ---------------- MAIN ---------------- */
-document.getElementById("startBtn").onclick = async () => {
-  await startCamera();
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
 
-  // Every 2 seconds → fake detect and mark attendance
-  setInterval(takeFakeAttendance, 2000);
-};
-</script>
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #020617, #0f172a, #1d0647, #0b5b8a);
+      background-size: 300% 300%;
+      animation: bgShift 12s infinite alternate ease-in-out;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+      color: #e5e7eb;
+    }
 
+    @keyframes bgShift {
+      0% { background-position: 0% 0%; }
+      50% { background-position: 50% 100%; }
+      100% { background-position: 100% 0%; }
+    }
+
+    .app {
+      width: 100%;
+      max-width: 1200px;
+      background: radial-gradient(circle at top left, rgba(56,189,248,0.18), rgba(15,23,42,0.96));
+      border-radius: 24px;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      box-shadow:
+        0 20px 60px rgba(0,0,0,0.8),
+        0 0 0 1px rgba(15,23,42,0.9);
+      padding: 18px 18px 14px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .app::before {
+      content: "";
+      position: absolute;
+      inset: -40%;
+      background:
+        radial-gradient(circle at 10% 0%, rgba(59,130,246,0.22), transparent 55%),
+        radial-gradient(circle at 90% 100%, rgba(34,197,94,0.16), transparent 55%);
+      opacity: 0.9;
+      pointer-events: none;
+    }
+
+    .content {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .title-block {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .title-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .pulse-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 18px var(--accent);
+      position: relative;
+    }
+
+    .pulse-dot::after {
+      content: "";
+      position: absolute;
+      inset: -6px;
+      border-radius: inherit;
+      border: 2px solid rgba(34,197,94,0.6);
+      opacity: 0;
+      animation: pulse 1.8s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.6); opacity: 0.9; }
+      100% { transform: scale(1.4); opacity: 0; }
+    }
+
+    .title {
+      font-size: 22px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-weight: 800;
+    }
+
+    .subtitle {
+      font-size: 12px;
+      opacity: 0.8;
+    }
+
+    .status-badge {
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(129, 140, 248, 0.9);
+      background: linear-gradient(135deg, rgba(30,64,175,0.6), rgba(15,23,42,0.96));
+      font-size: 11px;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .status-chip-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #f97316;
+      box-shadow: 0 0 12px #f97316;
+    }
+
+    .status-chip-dot.on {
+      background: var(--accent);
+      box-shadow: 0 0 12px var(--accent);
+    }
+
+    /* Layout */
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+      gap: 16px;
+    }
+
+    @media (max-width: 900px) {
+      .grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    /* Cards */
+    .card {
+      background: var(--glass);
+      border-radius: 18px;
+      border: 1px solid rgba(148,163,184,0.6);
+      padding: 12px 12px 10px;
+      backdrop-filter: blur(18px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(59,130,246,0.19), transparent 40%, rgba(56,189,248,0.13));
+      opacity: 0.6;
+      pointer-events: none;
+    }
+
+    .card-inner {
+      position: relative;
+      z-index: 1;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .card-subtitle {
+      font-size: 11px;
+      opacity: 0.8;
+      margin-top: 2px;
+    }
+
+    .pill {
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.8);
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    /* Camera box */
+    .camera-wrap {
+      position: relative;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(148,163,184,0.7);
+      background: #020617;
+      aspect-ratio: 16 / 9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: saturate(1.2);
+    }
+
+    .scan-lines {
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(56,189,248,0.18),
+        rgba(56,189,248,0.18) 2px,
+        transparent 2px,
+        transparent 6px
+      );
+      mix-blend-mode: screen;
+      pointer-events: none;
+      opacity: 0.45;
+      animation: scanMove 3s linear infinite;
+    }
+
+    @keyframes scanMove {
+      0% { transform: translateY(-5%); }
+      100% { transform: translateY(5%); }
+    }
+
+    .corner {
+      position: absolute;
+      width: 40px;
+      height: 40px;
+      border: 2px solid rgba(56,189,248,0.85);
+      box-shadow: 0 0 14px rgba(56,189,248,0.7);
+    }
+
+    .corner.tl { top: 6px; left: 6px; border-right: none; border-bottom: none; }
+    .corner.tr { top: 6px; right: 6px; border-left: none; border-bottom: none; }
+    .corner.bl { bottom: 6px; left: 6px; border-right: none; border-top: none; }
+    .corner.br { bottom: 6px; right: 6px; border-left: none; border-top: none; }
+
+    .cam-footer {
+      margin-top: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      opacity: 0.85;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .cam-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .cam-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #ef4444;
+      box-shadow: 0 0 10px #ef4444;
+    }
+
+    .cam-dot.on {
+      background: #22c55e;
+      box-shadow: 0 0 10px #22c55e;
+    }
+
+    /* Buttons */
+    .btn-row {
+      margin-top: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    button {
+      border: none;
+      border-radius: 999px;
+      padding: 8px 16px;
+      font-size: 13px;
+      cursor: pointer;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      transition: transform 0.1s ease, box-shadow 0.15s ease, background 0.15s ease, opacity 0.15s ease;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #22c55e, #4ade80);
+      color: #052e16;
+      box-shadow: 0 0 15px rgba(34,197,94,0.4);
+    }
+
+    .btn-secondary {
+      background: rgba(15,23,42,0.96);
+      color: #e5e7eb;
+      border: 1px solid rgba(148,163,184,0.7);
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, #ef4444, #b91c1c);
+      color: #fee2e2;
+    }
+
+    button:not(:disabled):hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 26px rgba(15,23,42,0.9);
+    }
+
+    /* Message bar */
+    .msg-bar {
+      margin-top: 8px;
+      font-size: 12px;
+      min-height: 24px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      opacity: 0.9;
+    }
+
+    .msg-icon {
+      font-size: 14px;
+    }
+
+    /* Popup */
+    .popup {
+      position: fixed;
+      right: 16px;
+      top: 16px;
+      background: rgba(22,163,74,0.98);
+      color: #ecfdf5;
+      padding: 10px 14px;
+      border-radius: 14px;
+      box-shadow: 0 0 22px rgba(34,197,94,0.75);
+      font-size: 13px;
+      display: none;
+      z-index: 9999;
+      display: none;
+    }
+
+    .popup.show {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      animation: slideDown 0.18s ease-out, fadeOut 0.4s ease-in 1.9s forwards;
+    }
+
+    @keyframes slideDown {
+      from { transform: translateY(-10px); opacity: 0; }
+      to   { transform: translateY(0); opacity: 1; }
+    }
+
+    @keyframes fadeOut {
+      from { opacity: 1; }
+      to   { opacity: 0; }
+    }
+
+    /* Right side: dashboard */
+    .lists {
+      display: grid;
+      grid-template-columns: minmax(0,1fr) minmax(0,1fr);
+      gap: 8px;
+      font-size: 13px;
+    }
+
+    @media (max-width: 800px) {
+      .lists {
+        grid-template-columns: minmax(0,1fr);
+      }
+    }
+
+    .list-card {
+      background: rgba(15,23,42,0.98);
+      border-radius: 14px;
+      border: 1px solid rgba(59,130,246,0.9);
+      padding: 8px 8px 6px;
+      max-height: 220px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .list-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 4px;
+    }
+
+    .list-title {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .list-count {
+      font-size: 11px;
+      opacity: 0.8;
+    }
+
+    .list-body {
+      margin-top: 4px;
+      overflow-y: auto;
+      padding-right: 3px;
+    }
+
+    .list-body::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .list-body::-webkit-scrollbar-thumb {
+      background: rgba(148,163,184,0.7);
+      border-radius: 999px;
+    }
+
+    .chip {
+      padding: 5px 7px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.7);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+
+    .chip.present {
+      border-color: rgba(34,197,94,0.9);
+      background: rgba(22,163,74,0.12);
+    }
+
+    .chip-name {
+      font-weight: 500;
+    }
+
+    .chip-meta {
+      font-size: 11px;
+      opacity: 0.85;
+    }
+
+    .footer {
+      margin-top: 10px;
+      font-size: 11px;
+      text-align: right;
+      opacity: 0.85;
+    }
+  </style>
+</head>
+<body>
+  <div class="popup" id="popup">
+    <span>✅</span>
+    <span id="popupText">Attendance taken successfully</span>
+  </div>
+
+  <div class="app">
+    <div class="content">
+      <header class="header">
+        <div class="title-block">
+          <div class="title-row">
+            <span class="pulse-dot"></span>
+            <span class="title">SMART NEON ATTENDANCE</span>
+          </div>
+          <div class="subtitle">
+            Fake auto detection demo – while camera is ON, system randomly marks students present with smooth UI, sound & voice.
+          </div>
+        </div>
+        <div class="status-badge">
+          <span id="statusDot" class="status-chip-dot"></span>
+          <span id="statusText">Idle · Camera off</span>
+        </div>
+      </header>
+
+      <main class="grid">
+        <!-- LEFT: Camera -->
+        <section class="card">
+          <div class="card-inner">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Live Camera & Fake Detection</div>
+                <div class="card-subtitle">
+                  Start camera, stand in front. Every 2–3 seconds, one random student will be marked present with success popup & voice.
+                </div>
+              </div>
+              <div class="pill" id="summary">
+                Present: 0 · Pending: 0
+              </div>
+            </div>
+
+            <div class="camera-wrap">
+              <video id="video" autoplay muted playsinline></video>
+              <div class="scan-lines"></div>
+              <div class="corner tl"></div>
+              <div class="corner tr"></div>
+              <div class="corner bl"></div>
+              <div class="corner br"></div>
+            </div>
+
+            <div class="cam-footer">
+              <div class="cam-status">
+                <span id="camDot" class="cam-dot"></span>
+                <span id="camText">Camera idle</span>
+              </div>
+              <div id="lastMarked" style="font-size:11px; opacity:0.9;">
+                Last attendance: —
+              </div>
+            </div>
+
+            <div class="btn-row">
+              <button class="btn-primary" id="startBtn">▶ Start Camera</button>
+              <button class="btn-secondary" id="stopBtn" disabled>■ Stop Camera</button>
+              <button class="btn-danger" id="resetBtn">↺ Reset Attendance</button>
+            </div>
+
+            <div class="msg-bar" id="messageBar">
+              <span class="msg-icon">💡</span>
+              <span id="messageText">Tip: Use Chrome/Edge and allow camera permission for smoother experience.</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- RIGHT: Dashboard -->
+        <section class="card">
+          <div class="card-inner">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Attendance Dashboard</div>
+                <div class="card-subtitle">
+                  Fake demo – shows present & pending students. No real face recognition, only random marking.
+                </div>
+              </div>
+            </div>
+
+            <div class="lists">
+              <div class="list-card">
+                <div class="list-header">
+                  <span class="list-title">✅ Present</span>
+                  <span class="list-count" id="presentCount">0 marked</span>
+                </div>
+                <div class="list-body" id="presentList"></div>
+              </div>
+
+              <div class="list-card">
+                <div class="list-header">
+                  <span class="list-title">⏳ Pending</span>
+                  <span class="list-count" id="pendingCount">0 pending</span>
+                </div>
+                <div class="list-body" id="pendingList"></div>
+              </div>
+            </div>
+
+            <div class="footer">
+              Developed by <strong>Keerthana</strong>, <strong>Hari Chandana</strong> &amp; <strong>Rinithasai K</strong>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    // ---------- CONFIG ----------
+    const STUDENTS = [
+      "Keerthana",
+      "Hari Chandana",
+      "Vedha Sai G",
+      "Ajith Kumar",
+      "Shiva Narayana",
+      "Rinithasai K",
+      "Teja",
+      "Hemanth",
+      "Likitha",
+      "Sai Charan",
+      "Navya",
+      "Pranav"
+    ];
+
+    const MIN_DELAY_MS = 2000;
+    const MAX_DELAY_MS = 3000;
+
+    // ---------- STATE ----------
+    const present = new Map(); // name -> time
+    let intervalId = null;
+    let stream = null;
+    let cameraOn = false;
+
+    // ---------- DOM ----------
+    const video = document.getElementById("video");
+    const startBtn = document.getElementById("startBtn");
+    const stopBtn = document.getElementById("stopBtn");
+    const resetBtn = document.getElementById("resetBtn");
+
+    const camDot = document.getElementById("camDot");
+    const camText = document.getElementById("camText");
+    const statusDot = document.getElementById("statusDot");
+    const statusText = document.getElementById("statusText");
+
+    const summaryEl = document.getElementById("summary");
+    const lastMarkedEl = document.getElementById("lastMarked");
+    const messageBar = document.getElementById("messageBar");
+    const messageText = document.getElementById("messageText");
+
+    const presentList = document.getElementById("presentList");
+    const pendingList = document.getElementById("pendingList");
+    const presentCount = document.getElementById("presentCount");
+    const pendingCount = document.getElementById("pendingCount");
+
+    const popup = document.getElementById("popup");
+    const popupText = document.getElementById("popupText");
+
+    // ---------- SOUND & VOICE ----------
+    function playDing() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.value = 880;
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.3, ctx.currentTime + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.25);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.3);
+      } catch (e) {
+        console.warn("Audio not supported:", e);
+      }
+    }
+
+    function speak(text) {
+      if (!("speechSynthesis" in window)) return;
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.rate = 1.1;
+      utter.pitch = 1;
+      utter.volume = 1;
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(utter);
+    }
+
+    // ---------- UI HELPERS ----------
+    function setCameraStatus(on, msg) {
+      cameraOn = on;
+      camDot.classList.toggle("on", on);
+      camText.textContent = msg;
+      statusDot.classList.toggle("on", on);
+      statusText.textContent = on ? "Live · Auto marking active" : "Idle · Camera off";
+    }
+
+    function showMessage(msg) {
+      messageText.textContent = msg;
+    }
+
+    function showPopup(name) {
+      popupText.textContent = `✔ ${name} – attendance taken successfully`;
+      popup.classList.remove("show");
+      void popup.offsetWidth; // force reflow
+      popup.classList.add("show");
+      setTimeout(() => popup.classList.remove("show"), 2200);
+    }
+
+    function updateLists() {
+      presentList.innerHTML = "";
+      pendingList.innerHTML = "";
+
+      const presentNames = Array.from(present.keys());
+      const pendingNames = STUDENTS.filter(n => !present.has(n));
+
+      presentNames.forEach(name => {
+        const time = present.get(name);
+        const chip = document.createElement("div");
+        chip.className = "chip present";
+        chip.innerHTML = `
+          <span class="chip-name">${name}</span>
+          <span class="chip-meta">✔ ${time}</span>
+        `;
+        presentList.appendChild(chip);
+      });
+
+      pendingNames.forEach(name => {
+        const chip = document.createElement("div");
+        chip.className = "chip";
+        chip.innerHTML = `
+          <span class="chip-name">${name}</span>
+          <span class="chip-meta">⏳ waiting…</span>
+        `;
+        pendingList.appendChild(chip);
+      });
+
+      presentCount.textContent = `${presentNames.length} marked`;
+      pendingCount.textContent = `${pendingNames.length} pending`;
+      summaryEl.textContent = `Present: ${presentNames.length} · Pending: ${pendingNames.length}`;
+    }
+
+    function resetAttendance() {
+      present.clear();
+      updateLists();
+      lastMarkedEl.textContent = "Last attendance: —";
+      showMessage("Attendance reset. Auto marking will start fresh when camera is on.");
+    }
+
+    // ---------- FAKE AUTO ATTENDANCE ----------
+    function scheduleNextFakeMark() {
+      if (!cameraOn) return;
+      const pendingNames = STUDENTS.filter(n => !present.has(n));
+      if (pendingNames.length === 0) {
+        showMessage("All students marked present. Auto marking stopped.");
+        return;
+      }
+
+      const delay = MIN_DELAY_MS + Math.random() * (MAX_DELAY_MS - MIN_DELAY_MS);
+      intervalId = setTimeout(() => {
+        if (!cameraOn) return;
+        const stillPending = STUDENTS.filter(n => !present.has(n));
+        if (stillPending.length === 0) {
+          showMessage("All students marked present.");
+          return;
+        }
+        const chosen = stillPending[Math.floor(Math.random() * stillPending.length)];
+        const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+        present.set(chosen, time);
+        updateLists();
+        lastMarkedEl.textContent = `Last attendance: ${chosen} at ${time}`;
+        showPopup(chosen);
+        playDing();
+        speak("Attendance taken successfully");
+
+        scheduleNextFakeMark();
+      }, delay);
+    }
+
+    // ---------- CAMERA ----------
+    async function startCamera() {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        showMessage("Camera not supported on this browser. Use Chrome or Edge.");
+        return;
+      }
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        video.srcObject = stream;
+        setCameraStatus(true, "Camera running");
+        startBtn.disabled = true;
+        stopBtn.disabled = false;
+        showMessage("Camera started. Auto marking will run every 2–3 seconds.");
+        scheduleNextFakeMark();
+      } catch (e) {
+        console.error(e);
+        showMessage("Camera permission denied. Allow camera access in browser settings.");
+        setCameraStatus(false, "Camera error");
+      }
+    }
+
+    function stopCamera() {
+      if (stream) {
+        stream.getTracks().forEach(t => t.stop());
+        stream = null;
+      }
+      if (intervalId) {
+        clearTimeout(intervalId);
+        intervalId = null;
+      }
+      setCameraStatus(false, "Camera stopped");
+      startBtn.disabled = false;
+      stopBtn.disabled = true;
+      showMessage("Camera stopped. Auto marking paused.");
+    }
+
+    // ---------- INIT ----------
+    updateLists();
+    setCameraStatus(false, "Camera idle");
+
+    startBtn.addEventListener("click", startCamera);
+    stopBtn.addEventListener("click", stopCamera);
+    resetBtn.addEventListener("click", () => {
+      resetAttendance();
+      if (cameraOn) {
+        if (intervalId) clearTimeout(intervalId);
+        scheduleNextFakeMark();
+      }
+    });
+
+    window.addEventListener("beforeunload", () => {
+      if (stream) stream.getTracks().forEach(t => t.stop());
+      if (intervalId) clearTimeout(intervalId);
+    });
+  </script>
 </body>
 </html>
