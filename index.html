@@ -1,749 +1,202 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Smart Face Attendance - Motion Demo</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
+<meta charset="UTF-8">
+<title>Neon Auto Attendance System</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    body {
-      min-height: 100vh;
-      background: #0f172a;
-      color: #e5e7eb;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-      flex-direction: column;
-    }
+<!-- Face API -->
+<script defer src="https://unpkg.com/face-api.js"></script>
 
-    .app {
-      width: 100%;
-      max-width: 1200px;
-      background: rgba(15, 23, 42, 0.95);
-      border-radius: 20px;
-      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
-      padding: 20px 24px 24px;
-      border: 1px solid rgba(148, 163, 184, 0.3);
-    }
+<style>
+/* ------------------ GLOBAL ------------------ */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(120deg, #050505, #0f0047, #001f5c);
+  background-size: 400% 400%;
+  animation: bgMove 10s infinite alternate;
+  color: white;
+  text-align: center;
+}
 
-    .app-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 18px;
-      gap: 12px;
-    }
+@keyframes bgMove {
+  0% { background-position: 0 0; }
+  100% { background-position: 100% 100%; }
+}
 
-    .title {
-      font-size: 24px;
-      font-weight: 700;
-      letter-spacing: 0.03em;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
+h1 {
+  margin-top: 20px;
+  font-size: 30px;
+  color: #38bdf8;
+  text-shadow: 0 0 20px #38bdf8;
+}
 
-    .title span.logo-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 999px;
-      background: #22c55e;
-      box-shadow: 0 0 15px #22c55e;
-    }
+/* ------------------ CAMERA ------------------ */
+#videoBox {
+  width: 480px;
+  height: 350px;
+  margin: 20px auto;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 4px solid #00eaff;
+  box-shadow: 0 0 25px #00eaff;
+}
 
-    .subtitle {
-      font-size: 12px;
-      opacity: 0.7;
-    }
+video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
 
-    .badge {
-      background: rgba(37, 99, 235, 0.15);
-      border-radius: 999px;
-      padding: 6px 14px;
-      font-size: 12px;
-      border: 1px solid rgba(59, 130, 246, 0.5);
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
+/* ------------------ BUTTON ------------------ */
+button {
+  padding: 12px 25px;
+  font-size: 18px;
+  border-radius: 10px;
+  border: none;
+  background: #00eeff;
+  color: black;
+  cursor: pointer;
+  margin-top: 15px;
+  font-weight: bold;
+  box-shadow: 0 0 20px #00eeff;
+}
 
-    .badge-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 999px;
-      background: #22c55e;
-      box-shadow: 0 0 10px #22c55e;
-    }
+button:hover {
+  box-shadow: 0 0 40px #00eeff;
+}
 
-    .grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.2fr);
-      gap: 16px;
-    }
+/* ------------------ DASHBOARD ------------------ */
+#dashboard {
+  width: 500px;
+  margin: 30px auto;
+  background: rgba(255,255,255,0.08);
+  padding: 20px;
+  border-radius: 18px;
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255,255,255,0.2);
+  box-shadow: 0 0 30px #00d0ff;
+}
 
-    @media (max-width: 900px) {
-      .grid {
-        grid-template-columns: minmax(0, 1fr);
-      }
-    }
+.section-title {
+  font-size: 24px;
+  margin-bottom: 10px;
+  text-shadow: 0 0 15px #00d0ff;
+}
 
-    .card {
-      background: radial-gradient(circle at top left, rgba(37, 99, 235, 0.25), rgba(15, 23, 42, 0.95));
-      border-radius: 16px;
-      padding: 14px 14px 16px;
-      border: 1px solid rgba(148, 163, 184, 0.3);
-      position: relative;
-      overflow: hidden;
-    }
+.name {
+  padding: 8px;
+  font-size: 18px;
+  margin: 6px 0;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.1);
+  box-shadow: 0 0 10px #1e90ff;
+}
 
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 10px;
-      gap: 8px;
-    }
-
-    .card-title {
-      font-size: 16px;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .card-title small {
-      display: block;
-      font-size: 11px;
-      font-weight: 400;
-      opacity: 0.7;
-    }
-
-    .pill {
-      font-size: 11px;
-      padding: 4px 8px;
-      border-radius: 999px;
-      background: rgba(15, 23, 42, 0.9);
-      border: 1px solid rgba(148, 163, 184, 0.4);
-    }
-
-    .video-wrapper {
-      position: relative;
-      border-radius: 14px;
-      overflow: hidden;
-      background: #020617;
-      border: 1px solid rgba(148, 163, 184, 0.3);
-      aspect-ratio: 4 / 3;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    video {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .status-overlay {
-      position: absolute;
-      bottom: 8px;
-      left: 8px;
-      right: 8px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      font-size: 11px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      backdrop-filter: blur(12px);
-      background: rgba(15, 23, 42, 0.8);
-      border: 1px solid rgba(148, 163, 184, 0.4);
-    }
-
-    .status-pill {
-      padding: 4px 9px;
-      border-radius: 999px;
-      font-size: 10px;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      border: 1px solid rgba(148, 163, 184, 0.6);
-    }
-
-    .status-pill .dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 999px;
-      background: #ef4444;
-    }
-
-    .status-pill.active .dot {
-      background: #22c55e;
-      box-shadow: 0 0 10px #22c55e;
-    }
-
-    .btn-row {
-      margin-top: 10px;
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    button {
-      border: none;
-      border-radius: 999px;
-      padding: 8px 14px;
-      font-size: 13px;
-      cursor: pointer;
-      font-weight: 500;
-      transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.15s ease;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      white-space: nowrap;
-    }
-
-    button.primary {
-      background: linear-gradient(135deg, #3b82f6, #22c55e);
-      color: white;
-      box-shadow: 0 10px 25px rgba(37, 99, 235, 0.4);
-    }
-
-    button.secondary {
-      background: rgba(15, 23, 42, 0.95);
-      border: 1px solid rgba(148, 163, 184, 0.7);
-      color: #e5e7eb;
-    }
-
-    button:disabled {
-      opacity: 0.55;
-      cursor: default;
-      box-shadow: none;
-      transform: none;
-    }
-
-    button:not(:disabled):hover {
-      transform: translateY(-1px);
-      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.7);
-    }
-
-    .hint {
-      margin-top: 6px;
-      font-size: 11px;
-      opacity: 0.75;
-    }
-
-    .msg {
-      margin-top: 10px;
-      font-size: 13px;
-      padding: 7px 10px;
-      border-radius: 10px;
-      background: rgba(15, 23, 42, 0.9);
-      border: 1px solid rgba(148, 163, 184, 0.6);
-    }
-
-    .msg span.label {
-      font-size: 11px;
-      opacity: 0.7;
-      display: block;
-      margin-bottom: 3px;
-    }
-
-    .msg.success {
-      border-color: rgba(34, 197, 94, 0.9);
-      box-shadow: 0 0 15px rgba(34, 197, 94, 0.4);
-    }
-
-    .msg.error {
-      border-color: rgba(239, 68, 68, 0.9);
-    }
-
-    .msg .name-highlight {
-      font-weight: 700;
-      color: #bbf7d0;
-    }
-
-    .dashboard-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-      gap: 10px;
-      margin-top: 8px;
-    }
-
-    @media (max-width: 700px) {
-      .dashboard-grid {
-        grid-template-columns: minmax(0, 1fr);
-      }
-    }
-
-    .dash-card {
-      background: rgba(15, 23, 42, 0.95);
-      border-radius: 14px;
-      padding: 10px 10px 11px;
-      border: 1px solid rgba(148, 163, 184, 0.35);
-      max-height: 260px;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    .dash-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      margin-bottom: 6px;
-      gap: 6px;
-    }
-
-    .dash-title {
-      font-size: 13px;
-      font-weight: 600;
-    }
-
-    .dash-count {
-      font-size: 11px;
-      opacity: 0.7;
-    }
-
-    .list {
-      flex: 1;
-      overflow-y: auto;
-      padding-right: 4px;
-      margin-top: 3px;
-    }
-
-    .list::-webkit-scrollbar {
-      width: 4px;
-    }
-
-    .list::-webkit-scrollbar-thumb {
-      background: rgba(148, 163, 184, 0.5);
-      border-radius: 999px;
-    }
-
-    .list-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      padding: 5px 7px;
-      border-radius: 9px;
-      font-size: 12px;
-      margin-bottom: 3px;
-      background: rgba(15, 23, 42, 0.9);
-      border: 1px solid rgba(75, 85, 99, 0.45);
-    }
-
-    .list-item span.name {
-      font-weight: 500;
-    }
-
-    .list-item span.meta {
-      font-size: 11px;
-      opacity: 0.7;
-    }
-
-    .list-item.present {
-      border-color: rgba(34, 197, 94, 0.85);
-    }
-
-    .tag {
-      font-size: 10px;
-      padding: 2px 7px;
-      border-radius: 999px;
-      background: rgba(34, 197, 94, 0.1);
-      border: 1px solid rgba(34, 197, 94, 0.7);
-      margin-left: 6px;
-    }
-
-    .info-text {
-      font-size: 11px;
-      opacity: 0.75;
-      margin-top: 8px;
-      line-height: 1.3;
-    }
-
-    .motion-support {
-      margin-top: 8px;
-      font-size: 11px;
-      opacity: 0.8;
-    }
-
-    .motion-support span {
-      padding: 2px 7px;
-      border-radius: 999px;
-      border: 1px solid rgba(148, 163, 184, 0.6);
-      background: rgba(15, 23, 42, 0.9);
-    }
-
-    .motion-support .ok {
-      border-color: rgba(34, 197, 94, 0.8);
-      color: #bbf7d0;
-    }
-
-    .footer-note {
-      margin-top: 10px;
-      font-size: 10px;
-      opacity: 0.65;
-      text-align: right;
-    }
-
-    .dev-footer {
-      margin-top: 20px;
-      text-align: center;
-      font-size: 14px;
-      opacity: 0.85;
-      padding: 10px 16px;
-      border-radius: 12px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      width: 100%;
-      max-width: 400px;
-    }
-  </style>
+/* ------------------ POPUP SUCCESS ------------------ */
+#popup {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #0aff7a;
+  padding: 15px 25px;
+  border-radius: 15px;
+  font-size: 18px;
+  font-weight: bold;
+  color: black;
+  box-shadow: 0 0 25px #00ff9d;
+  display: none;
+}
+</style>
 </head>
+
 <body>
-  <div class="app">
-    <header class="app-header">
-      <div>
-        <div class="title">
-          <span class="logo-dot"></span>
-          Smart Face Attendance
-        </div>
-        <div class="subtitle">Motion-based automatic attendance demo using webcam</div>
-      </div>
-      <div class="badge">
-        <span class="badge-dot"></span>
-        Demo | Frontend-Only | Motion Detection
-      </div>
-    </header>
 
-    <div class="grid">
-      <!-- LEFT: CAMERA -->
-      <section class="card">
-        <div class="card-header">
-          <div class="card-title">
-            Camera & Auto Detection
-            <small>When motion is detected in front of camera, attendance is taken automatically.</small>
-          </div>
-          <span class="pill" id="studentCountPill">Students: 0</span>
-        </div>
+<h1>NEON AUTO ATTENDANCE SYSTEM</h1>
 
-        <div class="video-wrapper">
-          <video id="video" autoplay playsinline></video>
-          <div class="status-overlay">
-            <div class="status-pill" id="cameraStatus">
-              <span class="dot"></span>
-              <span id="cameraStatusText">Camera idle</span>
-            </div>
-            <span style="font-size: 10px; opacity: 0.8;">Big motion ➜ Random pending name ➜ Mark present</span>
-          </div>
-        </div>
+<div id="videoBox">
+  <video id="video" autoplay muted></video>
+</div>
 
-        <div class="btn-row">
-          <button class="primary" id="startBtn">▶ Start Camera</button>
-          <button class="secondary" id="stopBtn" disabled>■ Stop Camera</button>
-          <button class="secondary" id="manualBtn">✋ Mark Attendance Manually</button>
-        </div>
+<button id="startBtn">Start Auto Attendance</button>
 
-        <p class="hint">
-          Stand in front of the camera and move a bit. When the system detects big motion, it will
-          <strong>automatically pick a random pending student</strong> and mark attendance.
-        </p>
+<div id="dashboard">
+  <div class="section-title">Present Students</div>
+  <div id="presentList"></div>
 
-        <div id="messageBox" class="msg" style="display:none;"></div>
+  <div class="section-title">Pending Students</div>
+  <div id="pendingList"></div>
+</div>
 
-        <p class="motion-support">
-          <span class="ok">Using browser-based motion detection ✔ (demo, not real face recognition)</span>
-        </p>
-      </section>
+<div id="popup">✔ Attendance Taken!</div>
 
-      <!-- RIGHT: DASHBOARDS -->
-      <section class="card">
-        <div class="card-header">
-          <div class="card-title">
-            Attendance Dashboards
-            <small>Who has taken attendance vs who is still pending.</small>
-          </div>
-          <span class="pill" id="summaryPill">Present: 0 · Pending: 0</span>
-        </div>
+<script>
+/* ---------------- STUDENT LIST ---------------- */
+const students = [
+  "Keerthana",
+  "Hari Chandana",
+  "Vedha Sai G",
+  "Ajith Kumar",
+  "Shiva Narayana"
+];
 
-        <div class="dashboard-grid">
-          <div class="dash-card">
-            <div class="dash-header">
-              <div class="dash-title">✅ Present Students</div>
-              <div class="dash-count" id="presentCount">0 marked</div>
-            </div>
-            <div class="list" id="presentList"></div>
-          </div>
+let present = new Set();
 
-          <div class="dash-card">
-            <div class="dash-header">
-              <div class="dash-title">⏳ Pending Students</div>
-              <div class="dash-count" id="pendingCount">0 pending</div>
-            </div>
-            <div class="list" id="pendingList"></div>
-          </div>
-        </div>
-
-        <p class="info-text">
-          This is a motion-based simulation for project demo purposes. You can edit the
-          <code>allStudents</code> array in the code to use your own class list.
-        </p>
-      </section>
-    </div>
-
-    <div class="footer-note">
-      Edit the <strong>allStudents</strong> array to customize student names.
-    </div>
-  </div>
-
-  <!-- Developer Footer -->
-  <div class="dev-footer">
-    Developed by <strong>Keerthana</strong> and <strong>Hari Chandhana</strong>
-  </div>
-
-  <script>
-    // =========================
-    // STUDENT LIST (EDIT THIS)
-    // =========================
-    const allStudents = [
-      "Vani",
-      "Rahul",
-      "Aisha",
-      "Kiran",
-      "Meena",
-      "Rohit",
-      "Deepak",
-      "Sita",
-      "Arjun",
-      "Priya"
-    ];
-
-    let presentStudents = [];
-    let pendingStudents = [...allStudents];
-
-    // UI elements
-    const video = document.getElementById("video");
-    const startBtn = document.getElementById("startBtn");
-    const stopBtn = document.getElementById("stopBtn");
-    const manualBtn = document.getElementById("manualBtn");
-    const messageBox = document.getElementById("messageBox");
-    const presentList = document.getElementById("presentList");
-    const pendingList = document.getElementById("pendingList");
-    const presentCount = document.getElementById("presentCount");
-    const pendingCount = document.getElementById("pendingCount");
-    const summaryPill = document.getElementById("summaryPill");
-    const studentCountPill = document.getElementById("studentCountPill");
-    const cameraStatus = document.getElementById("cameraStatus");
-    const cameraStatusText = document.getElementById("cameraStatusText");
-
-    let stream = null;
-    let detectionActive = false;
-
-    // For motion detection
-    const motionCanvas = document.createElement("canvas");
-    const motionCtx = motionCanvas.getContext("2d");
-    let lastImageData = null;
-
-    const ATTENDANCE_COOLDOWN_MS = 3500; // Wait between auto entries
-    let lastAttendanceTime = 0;
-    const MOTION_THRESHOLD = 2500; // Bigger = needs bigger motion
-
-    // =========================
-    // HELPER FUNCTIONS
-    // =========================
-    function updateDashboards() {
-      presentList.innerHTML = "";
-      presentStudents.forEach(entry => {
-        const li = document.createElement("div");
-        li.className = "list-item present";
-        li.innerHTML = `
-          <span class="name">${entry.name}</span>
-          <span class="meta">${entry.time}<span class="tag">Taken</span></span>
-        `;
-        presentList.appendChild(li);
-      });
-
-      pendingList.innerHTML = "";
-      pendingStudents.forEach(name => {
-        const li = document.createElement("div");
-        li.className = "list-item";
-        li.innerHTML = `
-          <span class="name">${name}</span>
-          <span class="meta">Waiting…</span>
-        `;
-        pendingList.appendChild(li);
-      });
-
-      presentCount.textContent = `${presentStudents.length} marked`;
-      pendingCount.textContent = `${pendingStudents.length} pending`;
-      summaryPill.textContent = `Present: ${presentStudents.length} · Pending: ${pendingStudents.length}`;
-      studentCountPill.textContent = `Students: ${allStudents.length}`;
-    }
-
-    function showMessage(type, text, label = "Status") {
-      messageBox.style.display = "block";
-      messageBox.className = "msg " + (type === "success" ? "success" : type === "error" ? "error" : "");
-      messageBox.innerHTML = `<span class="label">${label}</span>${text}`;
-    }
-
-    function clearMessage() {
-      messageBox.style.display = "none";
-    }
-
-    function setCameraStatus(active, text) {
-      cameraStatus.classList.toggle("active", active);
-      cameraStatusText.textContent = text;
-    }
-
-    function formatTime() {
-      const now = new Date();
-      const hh = String(now.getHours()).padStart(2, "0");
-      const mm = String(now.getMinutes()).padStart(2, "0");
-      const ss = String(now.getSeconds()).padStart(2, "0");
-      return `${hh}:${mm}:${ss}`;
-    }
-
-    // =========================
-    // ATTENDANCE LOGIC
-    // =========================
-    function markRandomPendingStudent(source = "Motion Detection") {
-      if (pendingStudents.length === 0) {
-        showMessage("error", "All students have already been marked present 🎉", "No pending students");
-        return;
-      }
-
-      const index = Math.floor(Math.random() * pendingStudents.length);
-      const name = pendingStudents[index];
-      pendingStudents.splice(index, 1);
-
-      const time = formatTime();
-      presentStudents.push({ name, time, source });
-      updateDashboards();
-
-      showMessage(
-        "success",
-        `✅ <span class="name-highlight">${name}</span> attendance taken successfully at ${time}.<br><small>Marked by: ${source}</small>`,
-        "Attendance recorded"
-      );
-    }
-
-    // =========================
-    // MOTION DETECTION
-    // =========================
-    function startMotionLoop() {
-      detectionActive = true;
-      lastImageData = null;
-      requestAnimationFrame(motionLoop);
-    }
-
-    function stopMotionLoop() {
-      detectionActive = false;
-      lastImageData = null;
-    }
-
-    function motionLoop() {
-      if (!detectionActive || !video.videoWidth || !video.videoHeight) {
-        if (detectionActive) requestAnimationFrame(motionLoop);
-        return;
-      }
-
-      const w = video.videoWidth;
-      const h = video.videoHeight;
-
-      if (motionCanvas.width !== w || motionCanvas.height !== h) {
-        motionCanvas.width = w;
-        motionCanvas.height = h;
-      }
-
-      motionCtx.drawImage(video, 0, 0, w, h);
-      const currentImageData = motionCtx.getImageData(0, 0, w, h);
-
-      if (lastImageData) {
-        let diffCount = 0;
-        const data1 = currentImageData.data;
-        const data2 = lastImageData.data;
-
-        // Sample pixels to speed up
-        const step = 4 * 8; // every 8 pixels
-        for (let i = 0; i < data1.length; i += step) {
-          const dr = data1[i] - data2[i];
-          const dg = data1[i + 1] - data2[i + 1];
-          const db = data1[i + 2] - data2[i + 2];
-          const colorDiff = Math.abs(dr) + Math.abs(dg) + Math.abs(db);
-          if (colorDiff > 60) {
-            diffCount++;
-          }
-        }
-
-        const now = Date.now();
-        if (
-          diffCount > MOTION_THRESHOLD &&
-          now - lastAttendanceTime > ATTENDANCE_COOLDOWN_MS
-        ) {
-          lastAttendanceTime = now;
-          markRandomPendingStudent("Motion Detection");
-        }
-      }
-
-      lastImageData = currentImageData;
-      if (detectionActive) requestAnimationFrame(motionLoop);
-    }
-
-    // =========================
-    // CAMERA CONTROLS
-    // =========================
-    async function startCamera() {
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-        video.srcObject = stream;
-        setCameraStatus(true, "Camera active");
-        startBtn.disabled = true;
-        stopBtn.disabled = false;
-        clearMessage();
-        startMotionLoop();
-      } catch (err) {
-        console.error(err);
-        showMessage(
-          "error",
-          "Could not access the webcam. Please allow camera permission.",
-          "Camera error"
-        );
-        setCameraStatus(false, "Camera error");
-      }
-    }
-
-    function stopCamera() {
-      if (stream) {
-        stream.getTracks().forEach(t => t.stop());
-        stream = null;
-      }
-      video.srcObject = null;
-      setCameraStatus(false, "Camera stopped");
-      startBtn.disabled = false;
-      stopBtn.disabled = true;
-      stopMotionLoop();
-    }
-
-    // =========================
-    // EVENT LISTENERS
-    // =========================
-    startBtn.addEventListener("click", startCamera);
-    stopBtn.addEventListener("click", stopCamera);
-    manualBtn.addEventListener("click", () => {
-      markRandomPendingStudent("Manual button");
+/* ---------------- CAMERA ---------------- */
+async function startCamera() {
+  navigator.mediaDevices.getUserMedia({ video: true })
+    .then(stream => {
+      document.getElementById("video").srcObject = stream;
     });
+}
 
-    // Init
-    updateDashboards();
-  </script>
+/* ---------------- RANDOM FAKE ATTENDANCE ---------------- */
+function takeFakeAttendance() {
+  const pending = students.filter(s => !present.has(s));
+  if (pending.length === 0) return;
+
+  const randomStudent = pending[Math.floor(Math.random() * pending.length)];
+  present.add(randomStudent);
+
+  showPopup(randomStudent);
+  updateDashboard();
+}
+
+/* ---------------- POPUP ---------------- */
+function showPopup(name) {
+  const popup = document.getElementById("popup");
+  popup.innerHTML = `✔ ${name} - Attendance Successful`;
+  popup.style.display = "block";
+
+  setTimeout(() => { popup.style.display = "none"; }, 2000);
+}
+
+/* ---------------- DASHBOARD UPDATE ---------------- */
+function updateDashboard() {
+  const presentList = document.getElementById("presentList");
+  const pendingList = document.getElementById("pendingList");
+
+  presentList.innerHTML = "";
+  pendingList.innerHTML = "";
+
+  students.forEach(s => {
+    if (present.has(s)) {
+      presentList.innerHTML += `<div class="name" style="color:#00ff9d;">✔ ${s}</div>`;
+    } else {
+      pendingList.innerHTML += `<div class="name" style="color:#ff6b6b;">⏳ ${s}</div>`;
+    }
+  });
+}
+
+/* ---------------- MAIN ---------------- */
+document.getElementById("startBtn").onclick = async () => {
+  await startCamera();
+
+  // Every 2 seconds → fake detect and mark attendance
+  setInterval(takeFakeAttendance, 2000);
+};
+</script>
+
 </body>
 </html>
