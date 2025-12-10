@@ -1,1 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Smart Face Attendance System</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Face API -->
+  <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: radial-gradient(circle at top, #1d4ed8 0, #020617 45%, #020617 100%);
+      color: #e5e7eb;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 20px 10px 30px;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 1200px;
+      background: linear-gradient(145deg, rgba(15,23,42,0.98), rgba(15,23,42,0.95));
+      border-radius: 24px;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      box-shadow:
+        0 24px 70px rgba(0, 0, 0, 0.85),
+        0 0 0 1px rgba(15, 23, 42, 0.7);
+      padding: 16px 16px 20px;
+    }
+
+    .app-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .title-main {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .title-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      background: #22c55e;
+      box-shadow: 0 0 18px #22c55e;
+    }
+
+    .subtitle {
+      font-size: 12px;
+      opacity: 0.8;
+      margin-top: 2px;
+    }
+
+    .badge {
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(129, 140, 248, 0.95);
+      background: radial-gradient(circle at top left, rgba(96,165,250,0.35), rgba(15,23,42,0.96));
+      font-size: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .badge-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #f97316;
+      box-shadow: 0 0 12px #f97316;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+      gap: 16px;
+    }
+
+    @media (max-width: 900px) {
+      .layout {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    /* Left side */
+    .camera-card {
+      background: radial-gradient(circle at top left, rgba(22,163,74,0.2), rgba(15,23,42,0.95));
+      border-radius: 18px;
+      border: 1px solid rgba(34,197,94,0.35);
+      padding: 14px 14px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+    }
+
+    .pill {
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(15,23,42,0.9);
+      border: 1px solid rgba(52,211,153,0.5);
+      font-size: 11px;
+    }
+
+    .video-wrap {
+      position: relative;
+      border-radius: 16px;
+      overflow: hidden;
+      background: #020617;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      min-height: 260px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    video {
+      width: 100%;
+      max-height: 380px;
+      object-fit: cover;
+      background: #020617;
+    }
+
+    canvas {
+      position: absolute;
+      left: 0;
+      top: 0;
+    }
+
+    .camera-footer {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 6px;
+      font-size: 11px;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #ef4444;
+    }
+
+    .buttons-row {
+      margin-top: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .btn {
+      padding: 7px 14px;
+      font-size: 13px;
+      border-radius: 999px;
+      cursor: pointer;
+      border: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.18s ease, transform 0.08s ease, box-shadow 0.18s ease;
+    }
+
+    .btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .btn-ghost {
+      background: rgba(15,23,42,0.9);
+      color: #e5e7eb;
+      border: 1px solid rgba(148,163,184,0.6);
+    }
+
+    .btn-primary {
+      background: linear-gradient(to right, #22c55e, #16a34a);
+      color: #052e16;
+      box-shadow: 0 0 18px rgba(34,197,94,0.3);
+    }
+
+    .btn-danger {
+      background: linear-gradient(to right, #ef4444, #b91c1c);
+      color: #fef2f2;
+    }
+
+    .btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 22px rgba(0,0,0,0.4);
+    }
+
+    .hint {
+      font-size: 11px;
+      opacity: 0.7;
+      margin-top: 3px;
+    }
+
+    /* Right side */
+    .attendance-card {
+      background: radial-gradient(circle at top right, rgba(59,130,246,0.2), rgba(15,23,42,0.97));
+      border-radius: 18px;
+      border: 1px solid rgba(59,130,246,0.7);
+      padding: 14px 14px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .badge-small {
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.65);
+      font-size: 11px;
+      opacity: 0.9;
+    }
+
+    .dashboards {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 10px;
+      font-size: 13px;
+    }
+
+    @media (max-width: 900px) {
+      .dashboards {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .panel {
+      background: rgba(15,23,42,0.96);
+      border-radius: 14px;
+      border: 1px solid rgba(30,64,175,0.6);
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-height: 120px;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 13px;
+      margin-bottom: 4px;
+    }
+
+    .panel-title {
+      font-weight: 600;
+    }
+
+    .count-pill {
+      font-size: 11px;
+      opacity: 0.8;
+    }
+
+    ul {
+      list-style: none;
+      padding-left: 0;
+      margin-left: 0;
+    }
+
+    li {
+      padding: 5px 7px;
+      border-radius: 999px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 4px;
+      margin-bottom: 4px;
+      background: rgba(15,23,42,0.9);
+      border: 1px solid rgba(30,64,175,0.5);
+    }
+
+    li span.status {
+      font-size: 11px;
+      opacity: 0.8;
+    }
+
+    .present-li {
+      border-color: rgba(34,197,94,0.7);
+      background: rgba(22,163,74,0.08);
+    }
+
+    .message-box {
+      margin-top: 4px;
+      font-size: 12px;
+      min-height: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      opacity: 0.9;
+    }
+
+    .message-box .icon {
+      font-size: 14px;
+    }
+
+    .footer {
+      font-size: 11px;
+      text-align: center;
+      margin-top: 10px;
+      opacity: 0.8;
+    }
+
+    .footer strong {
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="app-header">
+      <div>
+        <div class="title-main">
+          <div class="title-dot"></div>
+          SMART FACE ATTENDANCE SYSTEM
+        </div>
+        <div class="subtitle">
+          Face recognition will automatically mark attendance for registered students.
+        </div>
+      </div>
+
+      <div class="badge">
+        <div id="modelDot" class="badge-dot"></div>
+        <span id="modelStatusText">Loading models…</span>
+      </div>
+    </header>
+
+    <main class="layout">
+      <!-- Left: Camera -->
+      <section class="camera-card">
+        <div class="card-header">
+          <div>
+            <strong>Camera &amp; Face Recognition</strong>
+            <div class="subtitle" style="margin-top:2px;">
+              Stand in front of the camera. If your face matches a registered student photo,
+              attendance will be marked automatically.
+            </div>
+          </div>
+          <div class="pill">
+            <span id="summaryPill">Present: <span id="presentCount">0</span> · Pending: <span id="pendingCount">5</span></span>
+          </div>
+        </div>
+
+        <div class="video-wrap">
+          <video id="video" autoplay muted playsinline></video>
+          <canvas id="overlay"></canvas>
+        </div>
+
+        <div class="camera-footer">
+          <div class="status-indicator">
+            <div id="cameraDot" class="status-dot"></div>
+            <span id="cameraStatusText">Camera idle</span>
+          </div>
+          <div id="lastMarkedPill" class="badge-small">
+            Last marked: —
+          </div>
+        </div>
+
+        <div class="buttons-row">
+          <button id="startBtn" class="btn btn-primary" disabled>🔴 Start Camera</button>
+          <button id="stopBtn" class="btn btn-ghost" disabled>⏹ Stop Camera</button>
+          <button id="resetBtn" class="btn btn-danger">♻ Reset Attendance</button>
+        </div>
+
+        <div class="hint">
+          If camera doesn’t start: Chrome menu → Settings → Privacy &amp; Security → Site settings → Camera → allow for
+          <code>gvedhasa22081.github.io</code>.
+        </div>
+
+        <div id="messageBox" class="message-box"></div>
+      </section>
+
+      <!-- Right: Attendance -->
+      <section class="attendance-card">
+        <div class="card-header">
+          <div>
+            <strong>Attendance Dashboard</strong>
+            <div class="subtitle">
+              Live list of present vs pending students with latest attendance time.
+            </div>
+          </div>
+          <div class="badge-small">
+            Registered faces: Keerthana · Hari Chandana · Vedha Sai G · Ajith Kumar · Shiva Narayana
+          </div>
+        </div>
+
+        <div class="dashboards">
+          <div class="panel">
+            <div class="panel-header">
+              <span class="panel-title">✅ Present Students</span>
+              <span class="count-pill" id="presentCount2">0 marked</span>
+            </div>
+            <ul id="presentList"></ul>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <span class="panel-title">⌛ Pending Students</span>
+              <span class="count-pill" id="pendingCount2">5 pending</span>
+            </div>
+            <ul id="pendingList"></ul>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <div class="footer">
+      Developed by <strong>Keerthana</strong> &amp; <strong>Hari Chandana</strong>
+    </div>
+  </div>
+
+  <script>
+    // -------- CONFIG --------
+    const MODEL_URL = "./models";
+    const STUDENTS = [
+      { name: "Keerthana", file: "Keerthana.jpeg" },
+      { name: "Hari Chandana", file: "Hari_Chandana.jpeg" },
+      { name: "Vedha Sai G", file: "Vedha_Sai_G.jpeg" },
+      { name: "Ajith Kumar", file: "Ajith_Kumar.jpeg" },
+      { name: "Shiva Narayana", file: "Shiva_Narayana.jpeg" }
+    ];
+    const MATCH_THRESHOLD = 0.45; // smaller = stricter
+
+    // -------- DOM ELEMENTS --------
+    const video = document.getElementById("video");
+    const overlay = document.getElementById("overlay");
+    const ctx = overlay.getContext("2d");
+
+    const startBtn = document.getElementById("startBtn");
+    const stopBtn = document.getElementById("stopBtn");
+    const resetBtn = document.getElementById("resetBtn");
+
+    const messageBox = document.getElementById("messageBox");
+    const presentList = document.getElementById("presentList");
+    const pendingList = document.getElementById("pendingList");
+    const presentCount = document.getElementById("presentCount");
+    const presentCount2 = document.getElementById("presentCount2");
+    const pendingCount = document.getElementById("pendingCount");
+    const pendingCount2 = document.getElementById("pendingCount2");
+    const lastMarkedPill = document.getElementById("lastMarkedPill");
+
+    const modelDot = document.getElementById("modelDot");
+    const modelStatusText = document.getElementById("modelStatusText");
+    const cameraDot = document.getElementById("cameraDot");
+    const cameraStatusText = document.getElementById("cameraStatusText");
+
+    // -------- STATE --------
+    let stream = null;
+    let detectionInterval = null;
+    let faceMatcher = null;
+    let modelsLoaded = false;
+    let lastMatcher = null;
+
+    let present = [];
+    let pending = STUDENTS.map(s => s.name);
+
+    // -------- UI HELPERS --------
+    function showMessage(type, text) {
+      const emoji = type === "success" ? "✅" : type === "warn" ? "⚠️" : "❌";
+      messageBox.innerHTML = `<span class="icon">${emoji}</span><span>${text}</span>`;
+    }
+
+    function refreshLists() {
+      presentList.innerHTML = "";
+      pendingList.innerHTML = "";
+
+      present.forEach(item => {
+        const li = document.createElement("li");
+        li.classList.add("present-li");
+        li.innerHTML = `<span>${item.name}</span><span class="status">✔ ${item.time}</span>`;
+        presentList.appendChild(li);
+      });
+
+      pending.forEach(name => {
+        const li = document.createElement("li");
+        li.innerHTML = `<span>${name}</span><span class="status">Waiting… ⏳</span>`;
+        pendingList.appendChild(li);
+      });
+
+      presentCount.textContent = present.length;
+      presentCount2.textContent = `${present.length} marked`;
+      pendingCount.textContent = pending.length;
+      pendingCount2.textContent = `${pending.length} pending`;
+    }
+
+    function resetAttendance() {
+      present = [];
+      pending = STUDENTS.map(s => s.name);
+      lastMarkedPill.textContent = "Last marked: —";
+      refreshLists();
+      showMessage("warn", "Attendance reset. All students set to pending again.");
+    }
+
+    // -------- LOAD MODELS & STUDENT FACE DATA --------
+    async function loadModelsAndData() {
+      try {
+        modelStatusText.textContent = "Loading models…";
+        modelDot.style.background = "#f97316";
+
+        await Promise.all([
+          faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+          faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+          faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
+        ]);
+
+        modelStatusText.textContent = "Models loaded ✓ (preparing faces…)";
+
+        const labeledDescriptors = [];
+        for (const student of STUDENTS) {
+          const imgUrl = `./students/${student.file}`;
+          try {
+            const img = await faceapi.fetchImage(imgUrl);
+            const detection = await faceapi
+              .detectSingleFace(img, new faceapi.TinyFaceDetectorOptions())
+              .withFaceLandmarks()
+              .withFaceDescriptor();
+
+            if (!detection) {
+              console.warn("No face found for", student.name);
+              continue;
+            }
+            labeledDescriptors.push(
+              new faceapi.LabeledFaceDescriptors(student.name, [detection.descriptor])
+            );
+          } catch (err) {
+            console.error("Error processing image for", student.name, err);
+          }
+        }
+
+        if (!labeledDescriptors.length) {
+          modelStatusText.textContent = "Model error: no faces detected in student photos.";
+          modelDot.style.background = "#ef4444";
+          showMessage("error", "No faces detected in student images. Check your photos.");
+          return;
+        }
+
+        faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, MATCH_THRESHOLD);
+        modelsLoaded = true;
+        modelStatusText.textContent = "Models loaded · Ready ✓";
+        modelDot.style.background = "#22c55e";
+        showMessage("success", "Models and student faces loaded. You can start the camera.");
+        startBtn.disabled = false;
+      } catch (err) {
+        console.error(err);
+        modelStatusText.textContent = "Model error – see console.";
+        modelDot.style.background = "#ef4444";
+        showMessage("error", "Error loading models. Check console for details.");
+      }
+    }
+
+    // -------- CAMERA CONTROL --------
+    async function startCamera() {
+      if (!modelsLoaded) {
+        showMessage("warn", "Models not ready yet. Wait until top-right badge is green.");
+        return;
+      }
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        video.srcObject = stream;
+        cameraDot.style.background = "#22c55e";
+        cameraStatusText.textContent = "Camera running";
+        startBtn.disabled = true;
+        stopBtn.disabled = false;
+
+        video.addEventListener(
+          "loadedmetadata",
+          () => {
+            overlay.width = video.videoWidth;
+            overlay.height = video.videoHeight;
+          },
+          { once: true }
+        );
+
+        startDetectionLoop();
+      } catch (err) {
+        console.error(err);
+        cameraDot.style.background = "#ef4444";
+        cameraStatusText.textContent = "Camera permission denied";
+        showMessage("error", "Camera permission denied. Allow camera access in browser settings.");
+      }
+    }
+
+    function stopCamera() {
+      if (stream) {
+        stream.getTracks().forEach(t => t.stop());
+        stream = null;
+      }
+      if (detectionInterval) {
+        clearInterval(detectionInterval);
+        detectionInterval = null;
+      }
+      ctx.clearRect(0, 0, overlay.width, overlay.height);
+      cameraDot.style.background = "#ef4444";
+      cameraStatusText.textContent = "Camera stopped";
+      startBtn.disabled = false;
+      stopBtn.disabled = true;
+    }
+
+    // -------- DETECTION LOOP --------
+    function startDetectionLoop() {
+      const options = new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 });
+
+      if (detectionInterval) {
+        clearInterval(detectionInterval);
+      }
+
+      detectionInterval = setInterval(async () => {
+        if (!stream) return;
+        const result = await faceapi
+          .detectSingleFace(video, options)
+          .withFaceLandmarks()
+          .withFaceDescriptor();
+
+        ctx.clearRect(0, 0, overlay.width, overlay.height);
+
+        if (!result) return;
+
+        const resized = faceapi.resizeResults(result, {
+          width: overlay.width,
+          height: overlay.height
+        });
+
+        faceapi.draw.drawDetections(overlay, [resized]);
+
+        if (!faceMatcher) return;
+
+        const best = faceMatcher.findBestMatch(result.descriptor);
+        if (!best || best.label === "unknown") return;
+
+        const name = best.label;
+        if (!present.find(p => p.name === name)) {
+          // mark present
+          const now = new Date();
+          const timeStr = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+          present.push({ name, time: timeStr });
+          pending = pending.filter(x => x !== name);
+          refreshLists();
+
+          lastMarkedPill.textContent = `Last marked: ${name} at ${timeStr}`;
+          showMessage("success", `${name} – attendance marked successfully ✓`);
+        }
+      }, 700);
+    }
+
+    // -------- INITIALIZE --------
+    refreshLists();
+    loadModelsAndData();
+
+    startBtn.addEventListener("click", startCamera);
+    stopBtn.addEventListener("click", stopCamera);
+    resetBtn.addEventListener("click", () => {
+      resetAttendance();
+    });
+
+    window.addEventListener("beforeunload", () => {
+      stopCamera();
+    });
+  </script>
+</body>
+</html>
 
