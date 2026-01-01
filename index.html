@@ -6,153 +6,86 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <style>
-    :root {
-      --primary: #38bdf8;
-      --accent: #22c55e;
-      --danger: #f97373;
-      --bg-dark: #020617;
-      --glass: rgba(15, 23, 42, 0.8);
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
-
     body {
-      min-height: 100vh;
-      background: linear-gradient(135deg, #020617, #0f172a, #1d0647, #0b5b8a);
-      background-size: 300% 300%;
-      animation: bgShift 12s infinite alternate ease-in-out;
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      background: linear-gradient(135deg, #020617, #0f172a, #1e3a8a);
+      color: #e5e7eb;
       display: flex;
       justify-content: center;
       align-items: center;
-      padding: 16px;
-      color: #e5e7eb;
-    }
-
-    @keyframes bgShift {
-      0% { background-position: 0% 0%; }
-      50% { background-position: 50% 100%; }
-      100% { background-position: 100% 0%; }
+      min-height: 100vh;
+      padding: 14px;
     }
 
     .app {
       width: 100%;
-      max-width: 1200px;
-      background: radial-gradient(circle at top left, rgba(56,189,248,0.18), rgba(15,23,42,0.96));
-      border-radius: 24px;
-      border: 1px solid rgba(148, 163, 184, 0.6);
-      box-shadow: 0 20px 60px rgba(0,0,0,0.8);
-      padding: 18px;
-      position: relative;
-      overflow: hidden;
+      max-width: 420px;
+      background: rgba(15,23,42,0.95);
+      border-radius: 22px;
+      padding: 16px;
+      box-shadow: 0 0 40px rgba(0,0,0,0.8);
     }
 
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 14px;
-      flex-wrap: wrap;
-      gap: 10px;
+    .header h1 {
+      font-size: 18px;
+      letter-spacing: 0.12em;
+      margin: 0;
     }
 
-    .title-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .pulse-dot {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      background: var(--accent);
-      box-shadow: 0 0 16px var(--accent);
-      animation: pulse 1.6s infinite;
-    }
-
-    @keyframes pulse {
-      0% { transform: scale(0.7); opacity: 1; }
-      100% { transform: scale(1.4); opacity: 0; }
-    }
-
-    .title {
-      font-size: 22px;
-      font-weight: 800;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-    }
-
-    .subtitle {
+    .header p {
       font-size: 12px;
       opacity: 0.85;
-      margin-top: 4px;
+      margin-top: 6px;
     }
 
-    .status-badge {
-      padding: 6px 14px;
-      border-radius: 999px;
-      font-size: 11px;
-      border: 1px solid rgba(148,163,184,0.8);
-      display: flex;
+    .status {
+      margin-top: 10px;
+      display: inline-flex;
       align-items: center;
       gap: 6px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid #64748b;
+      font-size: 11px;
     }
 
-    .status-dot {
+    .dot {
       width: 8px;
       height: 8px;
       border-radius: 50%;
-      background: #ef4444;
+      background: red;
     }
 
-    .status-dot.on {
-      background: var(--accent);
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: 1.2fr 1fr;
-      gap: 16px;
-    }
-
-    @media (max-width: 900px) {
-      .grid {
-        grid-template-columns: 1fr;
-      }
+    .dot.on {
+      background: #22c55e;
     }
 
     .card {
-      background: var(--glass);
-      border-radius: 18px;
-      border: 1px solid rgba(148,163,184,0.6);
+      margin-top: 14px;
+      background: rgba(2,6,23,0.9);
+      border-radius: 16px;
       padding: 12px;
-      backdrop-filter: blur(18px);
+      border: 1px solid #334155;
     }
 
-    .card-title {
-      font-size: 16px;
-      font-weight: 600;
+    .card h2 {
+      font-size: 14px;
+      margin: 0;
     }
 
-    .card-subtitle {
+    .card p {
       font-size: 11px;
       opacity: 0.8;
       margin-top: 4px;
     }
 
-    .camera-wrap {
+    .camera {
       margin-top: 10px;
-      border-radius: 16px;
+      border-radius: 12px;
       overflow: hidden;
       aspect-ratio: 16/9;
-      border: 1px solid rgba(148,163,184,0.7);
-      background: #020617;
-      position: relative;
+      background: black;
     }
 
     video {
@@ -161,7 +94,7 @@
       object-fit: cover;
     }
 
-    .btn-row {
+    .buttons {
       margin-top: 10px;
       display: flex;
       gap: 8px;
@@ -169,124 +102,124 @@
     }
 
     button {
+      flex: 1;
       border: none;
       border-radius: 999px;
-      padding: 8px 16px;
+      padding: 8px;
       font-size: 13px;
       cursor: pointer;
-      font-weight: 500;
     }
 
-    .btn-primary {
-      background: linear-gradient(135deg, #22c55e, #4ade80);
-      color: #052e16;
+    .start {
+      background: #22c55e;
+      color: #022c22;
     }
 
-    .btn-secondary {
+    .stop {
       background: #020617;
-      color: #e5e7eb;
-      border: 1px solid rgba(148,163,184,0.7);
+      color: white;
+      border: 1px solid #475569;
     }
 
-    .btn-danger {
-      background: linear-gradient(135deg, #ef4444, #b91c1c);
-      color: #fee2e2;
+    .reset {
+      background: #dc2626;
+      color: white;
     }
 
     .lists {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
+      display: flex;
       gap: 8px;
       margin-top: 10px;
     }
 
-    .list-card {
-      background: rgba(15,23,42,0.95);
-      border-radius: 14px;
+    .list {
+      flex: 1;
+      background: rgba(15,23,42,0.9);
+      border-radius: 12px;
       padding: 8px;
-      border: 1px solid rgba(59,130,246,0.9);
-      max-height: 220px;
+      border: 1px solid #334155;
+      max-height: 160px;
       overflow-y: auto;
-    }
-
-    .chip {
-      padding: 6px 8px;
-      border-radius: 999px;
-      border: 1px solid rgba(148,163,184,0.7);
-      margin-bottom: 5px;
       font-size: 12px;
     }
 
+    .chip {
+      padding: 6px;
+      border-radius: 999px;
+      border: 1px solid #64748b;
+      margin-bottom: 6px;
+      text-align: center;
+    }
+
     .chip.present {
-      border-color: rgba(34,197,94,0.9);
-      background: rgba(22,163,74,0.12);
+      border-color: #22c55e;
+      background: rgba(34,197,94,0.15);
     }
 
     .footer {
       margin-top: 10px;
       font-size: 11px;
-      text-align: right;
+      text-align: center;
       opacity: 0.85;
+    }
+
+    #popup {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #16a34a;
+      color: white;
+      padding: 12px 16px;
+      border-radius: 14px;
+      display: none;
+      box-shadow: 0 0 20px rgba(34,197,94,0.9);
+      z-index: 9999;
     }
   </style>
 </head>
 
 <body>
-  <div class="app">
-    <header class="header">
-      <div>
-        <div class="title-row">
-          <span class="pulse-dot"></span>
-          <span class="title">SMART ATTENDANCE SYSTEM</span>
-        </div>
-        <div class="subtitle">
-          Automated attendance monitoring using live camera feed and real-time system alerts.
-        </div>
-      </div>
 
-      <div class="status-badge">
-        <span id="statusDot" class="status-dot"></span>
-        <span id="statusText">Idle · Camera off</span>
-      </div>
-    </header>
+<div id="popup">✅ Attendance taken successfully</div>
 
-    <main class="grid">
-      <!-- Camera Section -->
-      <section class="card">
-        <div class="card-title">Live Camera & Attendance Detection</div>
-        <div class="card-subtitle">
-          Enable the camera to begin attendance monitoring and automatic student detection.
-        </div>
-
-        <div class="camera-wrap">
-          <video id="video" autoplay muted playsinline></video>
-        </div>
-
-        <div class="btn-row">
-          <button class="btn-primary" id="startBtn">▶ Start Camera</button>
-          <button class="btn-secondary" id="stopBtn" disabled>■ Stop Camera</button>
-          <button class="btn-danger" id="resetBtn">↺ Reset Attendance</button>
-        </div>
-      </section>
-
-      <!-- Dashboard -->
-      <section class="card">
-        <div class="card-title">Attendance Dashboard</div>
-        <div class="card-subtitle">
-          Displays present and pending students based on live attendance monitoring.
-        </div>
-
-        <div class="lists">
-          <div class="list-card" id="presentList"></div>
-          <div class="list-card" id="pendingList"></div>
-        </div>
-
-        <div class="footer">
-          Developed by <strong>Keerthana</strong>, <strong>Hari Chandana</strong> &amp; <strong>Rinithasai K</strong>
-        </div>
-      </section>
-    </main>
+<div class="app">
+  <div class="header">
+    <h1>SMART ATTENDANCE SYSTEM</h1>
+    <p>Automated attendance monitoring using live camera feed.</p>
+    <div class="status">
+      <span id="dot" class="dot"></span>
+      <span id="statusText">Idle · Camera off</span>
+    </div>
   </div>
+
+  <div class="card">
+    <h2>Live Camera & Attendance Detection</h2>
+    <p>Enable camera to begin attendance monitoring.</p>
+
+    <div class="camera">
+      <video id="video" autoplay muted playsinline></video>
+    </div>
+
+    <div class="buttons">
+      <button class="start" id="startBtn">▶ Start Camera</button>
+      <button class="stop" id="stopBtn" disabled>■ Stop Camera</button>
+      <button class="reset" id="resetBtn">↺ Reset</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Attendance Dashboard</h2>
+
+    <div class="lists">
+      <div class="list" id="presentList"><b>Present</b></div>
+      <div class="list" id="pendingList"><b>Pending</b></div>
+    </div>
+
+    <div class="footer">
+      Developed by <strong>Keerthana K</strong>
+    </div>
+  </div>
+</div>
 
 <script>
   const STUDENTS = [
@@ -296,18 +229,18 @@
   ];
 
   const present = new Set();
+  let stream = null;
+  let timer = null;
+
   const video = document.getElementById("video");
-  const statusDot = document.getElementById("statusDot");
+  const dot = document.getElementById("dot");
   const statusText = document.getElementById("statusText");
   const presentList = document.getElementById("presentList");
   const pendingList = document.getElementById("pendingList");
 
-  let stream = null;
-  let timer = null;
-
   function updateLists() {
-    presentList.innerHTML = "<b>Present</b><br>";
-    pendingList.innerHTML = "<b>Pending</b><br>";
+    presentList.innerHTML = "<b>Present</b>";
+    pendingList.innerHTML = "<b>Pending</b>";
 
     STUDENTS.forEach(name => {
       const div = document.createElement("div");
@@ -317,39 +250,68 @@
     });
   }
 
+  function showPopup() {
+    const p = document.getElementById("popup");
+    p.style.display = "block";
+    setTimeout(() => p.style.display = "none", 2500);
+  }
+
+  function playBeep() {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    osc.frequency.value = 880;
+    osc.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.2);
+  }
+
+  function speak() {
+    if (!("speechSynthesis" in window)) return;
+    const msg = new SpeechSynthesisUtterance("Attendance taken successfully");
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(msg);
+  }
+
   async function startCamera() {
     stream = await navigator.mediaDevices.getUserMedia({ video: true });
     video.srcObject = stream;
-    statusDot.classList.add("on");
+    dot.classList.add("on");
     statusText.textContent = "Live · Attendance monitoring active";
+
     timer = setInterval(() => {
       const pending = STUDENTS.filter(s => !present.has(s));
-      if (pending.length > 0) {
-        present.add(pending[Math.floor(Math.random()*pending.length)]);
-        updateLists();
-      }
-    }, 2500);
-    document.getElementById("startBtn").disabled = true;
-    document.getElementById("stopBtn").disabled = false;
+      if (pending.length === 0) return;
+
+      const selected = pending[Math.floor(Math.random() * pending.length)];
+      present.add(selected);
+      updateLists();
+      showPopup();
+      playBeep();
+      speak();
+    }, 20000); // 20 seconds gap
+
+    startBtn.disabled = true;
+    stopBtn.disabled = false;
   }
 
   function stopCamera() {
     stream.getTracks().forEach(t => t.stop());
     clearInterval(timer);
-    statusDot.classList.remove("on");
+    dot.classList.remove("on");
     statusText.textContent = "Idle · Camera off";
-    document.getElementById("startBtn").disabled = false;
-    document.getElementById("stopBtn").disabled = true;
+    startBtn.disabled = false;
+    stopBtn.disabled = true;
   }
 
-  document.getElementById("startBtn").onclick = startCamera;
-  document.getElementById("stopBtn").onclick = stopCamera;
-  document.getElementById("resetBtn").onclick = () => {
+  startBtn.onclick = startCamera;
+  stopBtn.onclick = stopCamera;
+  resetBtn.onclick = () => {
     present.clear();
     updateLists();
   };
 
   updateLists();
 </script>
+
 </body>
 </html>
